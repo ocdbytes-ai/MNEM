@@ -13,6 +13,9 @@ impl SSD1306 {
 
     pub fn new(mut i2c: I2c) -> Result<Self> {
         i2c.set_slave_address(Self::I2C_ADDR)?;
+        for &byte in constants::INIT_SEQUENCE {
+            i2c.write(&[constants::PREFIX_CMD, byte])?;
+        }
         Ok(Self { i2c })
     }
 }

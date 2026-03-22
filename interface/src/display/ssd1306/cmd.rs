@@ -1,15 +1,28 @@
 use super::SSD1306;
 use super::constants;
-use crate::display::{DisplayInterface, Result};
+use crate::display::{DisplayInterface, Error, Result};
 
 impl DisplayInterface for SSD1306 {
+    fn width(&self) -> usize {
+        constants::WIDTH as usize
+    }
+
+    fn height(&self) -> usize {
+        constants::HEIGHT as usize
+    }
+
+    fn buffer_size(&self) -> usize {
+        constants::FRAMEBUFFER_SIZE
+    }
+
     fn flush(&mut self, data: &[u8]) -> Result<()> {
-        assert_eq!(
-            data.len(),
-            constants::FRAMEBUFFER_SIZE,
-            "buffer must be exactly {} bytes",
-            constants::FRAMEBUFFER_SIZE
-        );
+        if data.len() != constants::FRAMEBUFFER_SIZE {
+            return Err(Error::InvalidBufferSize {
+                expected: constants::FRAMEBUFFER_SIZE,
+                got: data.len(),
+            });
+        }
+
         // Reset the pointer to top-left before every frame
         self.i2c.write(&[
             constants::PREFIX_CMD,
@@ -30,13 +43,6 @@ impl DisplayInterface for SSD1306 {
             buf[0] = constants::PREFIX_DATA;
             buf[1..1 + chunk.len()].copy_from_slice(chunk);
             self.i2c.write(&buf[..1 + chunk.len()])?;
-        }
-        Ok(())
-    }
-
-    fn init(&mut self) -> Result<()> {
-        for &byte in constants::INIT_SEQUENCE {
-            self.i2c.write(&[constants::PREFIX_CMD, byte])?;
         }
         Ok(())
     }
