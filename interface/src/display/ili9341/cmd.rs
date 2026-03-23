@@ -1,5 +1,5 @@
 use super::ILI9341Display;
-use crate::display::{DisplayInterface, Error, Result};
+use crate::display::{DisplayInterface, Error, Result, Rgb565};
 use display_interface::WriteOnlyDataCommand;
 use embedded_hal::digital::OutputPin;
 
@@ -8,6 +8,8 @@ where
     IFACE: WriteOnlyDataCommand,
     RESET: OutputPin,
 {
+    type Pixel = Rgb565;
+
     fn width(&self) -> usize {
         self.inner.width()
     }
@@ -16,8 +18,12 @@ where
         self.inner.height()
     }
 
-    fn buffer_size(&self) -> usize {
-        self.inner.width() * self.inner.height() * 2 // RGB565: 2 bytes per pixel
+    fn encode_pixel(&self, pixel: &Rgb565, buf: &mut [u8], x: usize, y: usize) {
+        assert!(x < self.width() && y < self.height());
+        let offset = (y * self.width() + x) * 2;
+        let bytes = pixel.0.to_be_bytes();
+        buf[offset] = bytes[0];
+        buf[offset + 1] = bytes[1];
     }
 
     fn flush(&mut self, data: &[u8]) -> Result<()> {

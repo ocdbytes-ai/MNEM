@@ -74,7 +74,7 @@ pub const PREFIX_DATA: u8 = 0x40;
 pub const WIDTH: u8 = 128;
 pub const HEIGHT: u8 = 64;
 pub const PAGES: u8 = 8; // HEIGHT / 8
-pub const FRAMEBUFFER_SIZE: usize = 1024; // WIDTH * PAGES
+pub const FRAMEBUFFER_SIZE: usize = WIDTH as usize * PAGES as usize;
 
 // Ready-made init sequence for 128x64 with charge pump
 pub const INIT_SEQUENCE: &[u8] = &[

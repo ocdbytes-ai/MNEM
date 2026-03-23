@@ -1,72 +1,55 @@
 use std::env;
+use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
 
-use interface::display::{DisplayInterface, ILI9341Display, SSD1306};
+use interface::display::{DisplayInterface, ILI9341Display, Mono, Rgb565};
 
-fn run_ssd1306() -> interface::display::Result<()> {
+fn run_ssd1306() -> Result<(), Box<dyn std::error::Error>> {
+    use interface::display::SSD1306;
     let i2c = rppal::i2c::I2c::new()?;
     let mut display = SSD1306::new(i2c)?;
-
-    display.all_on()?;
+    display.fill_screen(&Mono(true))?;
     sleep(Duration::from_secs(2));
-    display.all_off()?;
-
+    display.fill_screen(&Mono(false))?;
     Ok(())
 }
 
-fn run_ili9341() -> interface::display::Result<()> {
-    use display_interface_spi::SPIInterface;
-    use ili9341::{DisplaySize240x320, Orientation};
-    use interface::hal;
-    use rppal::gpio::Gpio;
-    use rppal::spi::{Bus, Mode, SlaveSelect, Spi};
-
-    // SPI bus at 16 MHz, Mode 0 (CPOL=0, CPHA=0)
-    let spi = Spi::new(Bus::Spi0, SlaveSelect::Ss0, 16_000_000, Mode::Mode0)?;
-    let spi_device = hal::SpiDevice::new(spi);
-
-    let gpio = Gpio::new()?;
-    let dc = hal::OutputPin::new(gpio.get(25)?.into_output()); // DC pin (GPIO 25)
-    let reset = hal::OutputPin::new(gpio.get(27)?.into_output()); // RST pin (GPIO 27)
-
-    let spi_iface = SPIInterface::new(spi_device, dc);
-    let mut delay = hal::Delay;
-
-    let ili = ili9341::Ili9341::new(
-        spi_iface,
-        reset,
-        &mut delay,
-        Orientation::Landscape,
-        DisplaySize240x320,
-    )
-    .map_err(interface::display::Error::Display)?;
-
-    let mut display = ILI9341Display::new(ili);
-
-    // Fill screen white
-    let white = 0xFFFFu16;
-    let framebuffer: Vec<u8> = std::iter::repeat_n(white.to_be_bytes(), 240 * 320)
-        .flatten()
-        .collect();
-    display.flush(&framebuffer)?;
-
+fn run_ili9341() -> Result<(), Box<dyn std::error::Error>> {
+    use interface::display::ILI9341Display;
+    let mut display = ILI9341Display::setup()?;
+    display.fill_screen(&Rgb565::WHITE)?;
     sleep(Duration::from_secs(2));
-
-    // Fill screen black
-    let framebuffer = vec![0u8; 240 * 320 * 2];
-    display.flush(&framebuffer)?;
-
+    display.fill_screen(&Rgb565::BLACK)?;
     Ok(())
+}
+
+fn project<D: DisplayInterface<Pixel = Rgb565>>(
+    display: &mut D,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let pixels = interface::image::load_rgb565(
+        Path::new("assets/image.png"),
+        display.width() as u32,
+        display.height() as u32,
+    )?;
+    display.draw(&pixels)?;
+    sleep(Duration::from_secs(10));
+    Ok(())
+}
+
+fn project_rgb() -> Result<(), Box<dyn std::error::Error>> {
+    let mut display = ILI9341Display::setup()?;
+    project(&mut display)
 }
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    let display_type = args.get(1).map(String::as_str).unwrap_or("ssd1306");
+    let display_type = env::args().nth(1);
+    let display_type = display_type.as_deref().unwrap_or("ssd1306");
 
     let result = match display_type {
         "ssd1306" => run_ssd1306(),
         "ili9341" => run_ili9341(),
+        "project" => project_rgb(),
         other => {
             eprintln!("Unknown display type: {other}");
             eprintln!("Usage: interface [ssd1306|ili9341]");

@@ -14,7 +14,7 @@ impl SpiDevice {
 }
 
 #[derive(Debug)]
-pub struct SpiError(spi::Error);
+pub struct SpiError(pub spi::Error);
 
 impl embedded_hal::spi::Error for SpiError {
     fn kind(&self) -> embedded_hal::spi::ErrorKind {
@@ -25,6 +25,12 @@ impl embedded_hal::spi::Error for SpiError {
 impl std::fmt::Display for SpiError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+impl std::error::Error for SpiError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.0)
     }
 }
 
