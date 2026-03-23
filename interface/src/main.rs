@@ -1,5 +1,4 @@
 use std::env;
-use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -24,11 +23,13 @@ fn run_ili9341() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+const IMAGE: &[u8] = include_bytes!("../assets/image.jpg");
+
 fn project<D: DisplayInterface<Pixel = Rgb565>>(
     display: &mut D,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let pixels = interface::image::load_rgb565(
-        Path::new("assets/image.png"),
+    let pixels = interface::image::load_rgb565_bytes(
+        IMAGE,
         display.width() as u32,
         display.height() as u32,
     )?;

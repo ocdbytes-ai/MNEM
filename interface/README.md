@@ -69,10 +69,15 @@ Bridges between `rppal` (Raspberry Pi) and `embedded-hal` 1.0 traits:
 
 ```sh
 # Install cross-compilation toolchain (macOS)
-brew install messense/macos-cross-toolchains/aarch64-unknown-linux-gnu
-
-# Add Rust target
+# for 64 bit
 rustup target add aarch64-unknown-linux-gnu
+brew install messense/macos-cross-toolchains/aarch64-unknown-linux-gnu
+# 32 bit - armv7
+rustup target add arm-unknown-linux-gnueabihf
+brew install messense/macos-cross-toolchains/armv7-unknown-linux-gnueabihf
+# 32 bit - armv6
+rustup target add armv7-unknown-linux-gnueabihf
+brew install messense/macos-cross-toolchains/arm-unknown-linux-gnueabihf
 ```
 
 Ensure `.cargo/config.toml` exists with:
@@ -80,12 +85,23 @@ Ensure `.cargo/config.toml` exists with:
 ```toml
 [target.aarch64-unknown-linux-gnu]
 linker = "aarch64-unknown-linux-gnu-gcc"
+
+[target.armv7-unknown-linux-gnueabihf]
+linker = "armv7-unknown-linux-gnueabihf-gcc"
+
+[target.arm-unknown-linux-gnueabihf]
+linker = "arm-unknown-linux-gnueabihf-gcc"
 ```
 
 ### Compile
 
 ```sh
-cargo build --target aarch64-unknown-linux-gnu
+# for 64 bit
+cargo build --release --target aarch64-unknown-linux-gnu
+# 32 bit - armv7
+cargo build --release --target armv7-unknown-linux-gnueabihf
+# 32 bit - armv6
+cargo build --release --target arm-unknown-linux-gnueabihf 
 ```
 
 ## Run
