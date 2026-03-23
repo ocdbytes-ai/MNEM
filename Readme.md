@@ -1,25 +1,13 @@
 # Mnem
 
-Entity that lives, remembers and breathes
+Entity that lives, remembers and breathes.
+
+## Project Structure
+
+| Directory | Description |
+|-----------|-------------|
+| `interface/` | Rust library for display drivers and hardware abstraction |
 
 ## Build
 
-### Interface
-
-- Pre requisites
-
-```sh
-brew install messense/macos-cross-toolchains/aarch64-unknown-linux-gnu
-
-# 32 bit
-rustup target add armv7-unknown-linux-gnueabihf
-# -- or --
-# 64 bit
-rustup target add aarch64-unknown-linux-gnu
-```
-
-- Build
-
-```sh
-cargo build --target aarch64-unknown-linux-gnu
-```
+See [interface/README.md](interface/README.md) for build instructions and usage.
