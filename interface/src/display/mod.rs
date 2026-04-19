@@ -1,6 +1,9 @@
 mod ili9341;
 mod ssd1306;
 
+use std::thread::sleep;
+use std::time::Duration;
+
 pub use self::ili9341::ILI9341Display;
 pub use ssd1306::SSD1306;
 
@@ -79,43 +82,9 @@ impl From<display_interface::DisplayError> for Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-// --- Pixel formats ---
+// --- Pixel formats (re-exported from types crate) ---
 
-pub trait PixelFormat {
-    const BITS_PER_PIXEL: usize;
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Mono(pub bool);
-
-impl PixelFormat for Mono {
-    const BITS_PER_PIXEL: usize = 1;
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Rgb565(pub u16);
-
-impl Rgb565 {
-    pub const fn from_rgb(r: u8, g: u8, b: u8) -> Self {
-        let r5 = (r as u16 >> 3) & 0x1F;
-        let g6 = (g as u16 >> 2) & 0x3F;
-        let b5 = (b as u16 >> 3) & 0x1F;
-        Self((r5 << 11) | (g6 << 5) | b5)
-    }
-
-    pub const WHITE: Self = Self(0xFFFF);
-    pub const BLACK: Self = Self(0x0000);
-}
-
-impl PixelFormat for Rgb565 {
-    const BITS_PER_PIXEL: usize = 16;
-}
-
-pub struct Pixel<P: PixelFormat> {
-    pub x: usize,
-    pub y: usize,
-    pub color: P,
-}
+pub use types::{Mono, Pixel, PixelFormat, Rgb565};
 
 // --- Display trait ---
 
@@ -147,5 +116,12 @@ pub trait DisplayInterface {
             self.encode_pixel(&pixel.color, &mut buf, pixel.x, pixel.y);
         }
         self.flush(&buf)
+    }
+
+    fn test_display(&mut self) -> Result<()> {
+        self.fill_screen(&Self::Pixel::WHITE)?;
+        sleep(Duration::from_secs(2));
+        self.fill_screen(&Self::Pixel::BLACK)?;
+        Ok(())
     }
 }

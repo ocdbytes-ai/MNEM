@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 // Fundamental
 pub const SET_CONTRAST: u8 = 0x81;
 pub const DISPLAY_RAM: u8 = 0xA4;
