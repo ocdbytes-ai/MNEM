@@ -1,10 +1,8 @@
 # Mnem
 
-Entity that lives, remembers and breathes.
+Entity that lives and remembers.
 
-A bioluminescent alien creature (Voreln) that lives on a Raspberry Pi, expresses emotion
-through form and light, is fed via Telegram, and gradually learns its own behavioral
-personality through a custom ML model trained over three months.
+Entity that lives on a Raspberry Pi, expresses emotion through form and light, is fed via external inputs, and gradually learns its own behavioral personality through a custom ML model trained over three months.
 
 See [Plan.md](Plan.md) for the full project plan.
 
